@@ -1,523 +1,508 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏪 Store & Customer — Local Hotspot Game</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <title>🏪 Fast Food Store Simulator</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-    :root {
-      --primary: #2A9D8F; --secondary: #FFB703; --accent: #1D3557;
-      --danger: #E63946; --light: #F1FAEE;
+    body { background: #87CEEB; min-height: 100vh; overflow: hidden; }
+    
+    /* Top Status Bar */
+    .top-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.7); color: white;
+      padding: 10px 20px; display: flex;
+      justify-content: space-between; align-items: center;
+      z-index: 100;
     }
-    body {
-      background: linear-gradient(135deg, #F1FAEE 0%, #A8DADC 100%);
-      min-height: 100vh; padding: 15px;
+    .stat { text-align: center; }
+    .stat-value { font-size: 20px; font-weight: 700; }
+    .money { color: #FFD700; }
+    .clean { color: #4CAF50; }
+    .time { color: #87CEEB; }
+    
+    /* Game Area */
+    .game-container {
+      position: relative; width: 100%; height: 100vh;
+      background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
     }
-    .container { max-width: 520px; margin: 0 auto; }
-    .card {
-      background: white; border-radius: 16px; padding: 25px;
-      margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    
+    /* Store Building */
+    .store {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 900px; height: 70%;
+      background: #FFF8DC; border: 8px solid #8B4513; border-bottom: none;
+      border-radius: 20px 20px 0 0; overflow: hidden;
     }
-    .title { font-size: 22px; font-weight: 700; color: var(--accent); text-align: center; margin-bottom: 20px; }
-    .subtitle { font-size: 14px; color: #666; text-align: center; margin-bottom: 15px; }
-    .role-btn {
-      width: 100%; padding: 25px; border: none; border-radius: 12px;
-      font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 15px;
-      transition: transform 0.2s, box-shadow 0.2s;
+    .roof {
+      position: absolute; top: -30px; left: -5%; width: 110%; height: 40px;
+      background: #E63946; border-radius: 10px 10px 0 0;
     }
-    .role-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-    .btn-store { background: var(--primary); color: white; }
-    .btn-customer { background: var(--secondary); color: #222; }
-    .hidden { display: none !important; }
-    .balance-display {
-      font-size: 32px; font-weight: 700; color: var(--primary); text-align: center;
-      padding: 20px; background: #E8F8F5; border-radius: 12px; margin-bottom: 20px;
+    .sign {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      background: #FFB703; padding: 8px 25px; border-radius: 20px;
+      font-weight: 700; font-size: 18px; color: #1D3557;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
     }
-    .input-group { margin-bottom: 15px; }
-    label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
-    input, button {
-      width: 100%; padding: 12px; border: 2px solid #ddd;
-      border-radius: 8px; font-size: 16px;
+    
+    /* Counter */
+    .counter {
+      position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+      width: 80%; height: 80px; background: #DEB887;
+      border-radius: 8px; display: flex;
+      align-items: center; justify-content: center;
+      border: 4px solid #8B4513;
     }
-    input:focus { outline: none; border-color: var(--primary); }
-    .btn { border: none; font-weight: 700; cursor: pointer; border-radius: 8px; transition: background 0.2s; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: #21867C; }
-    .btn-secondary { background: var(--secondary); color: #222; }
-    .btn-secondary:hover { background: #ffc107; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: #c92a37; }
-    .product-item {
+    .counter-text { font-weight: 700; color: #4A2F0F; font-size: 18px; }
+    
+    /* Tables */
+    .tables {
+      position: absolute; bottom: 20px; left: 5%; right: 5%;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+    }
+    .table {
+      width: 100%; height: 60px; background: #DEB887;
+      border-radius: 8px; border: 3px solid #8B4513;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #5D3A1A;
+    }
+    .table.occupied { background: #CD853F; color: white; }
+    
+    /* Door */
+    .door {
+      position: absolute; bottom: 0; right: 30px; width: 70px; height: 120px;
+      background: #8B4513; border-radius: 8px 8px 0 0;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 10px; text-align: center;
+    }
+    
+    /* Trash Items */
+    .trash {
+      position: absolute; width: 40px; height: 40px;
+      background: #8B4513; border-radius: 4px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; transition: transform 0.2s;
+    }
+    .trash:hover { transform: scale(1.2); }
+    
+    /* Customer */
+    .customer {
+      position: absolute; bottom: 20px; width: 50px; height: 70px;
+      transition: all 0.5s ease; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .customer-body {
+      width: 35px; height: 35px; background: #4A90D9; border-radius: 50%;
+    }
+    .customer-head {
+      width: 25px; height: 25px; background: #F5DEB3; border-radius: 50%;
+      margin-bottom: -5px;
+    }
+    .customer-name {
+      font-size: 9px; background: rgba(0,0,0,0.7); color: white;
+      padding: 2px 5px; border-radius: 4px; margin-top: 3px;
+      white-space: nowrap;
+    }
+    
+    /* Order Modal */
+    .modal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: white; padding: 25px; border-radius: 16px;
+      box-shadow: 0 5px 30px rgba(0,0,0,0.3); z-index: 200;
+      min-width: 300px; display: none;
+    }
+    .modal.show { display: block; }
+    .modal h3 { margin-bottom: 15px; color: #1D3557; text-align: center; }
+    .menu-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px; background: var(--light); border-radius: 8px; margin-bottom: 8px;
+      padding: 10px; background: #F5F5F5; margin-bottom: 8px; border-radius: 8px;
+      cursor: pointer; transition: background 0.2s;
     }
-    .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-    .qrcode-container { display: flex; justify-content: center; padding: 20px; background: white; border-radius: 12px; margin: 15px 0; }
-    .status { padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; margin: 10px 0; }
-    .status-pending { background: #FFF3CD; color: #856404; }
-    .status-success { background: #D4EDDA; color: #155724; }
-    .status-error { background: #F8D7DA; color: #721C24; }
-    .scan-area {
-      border: 3px dashed var(--primary); border-radius: 12px; padding: 40px 20px;
-      text-align: center; cursor: pointer; margin: 15px 0; transition: background 0.2s;
+    .menu-item:hover { background: #E8F8F5; }
+    .close-btn {
+      margin-top: 15px; width: 100%; padding: 10px; background: #E63946;
+      color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;
     }
-    .scan-area:hover { background: #E8F8F5; }
-    .transaction-log { margin-top: 15px; max-height: 200px; overflow-y: auto; }
-    .log-entry { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
-    .back-btn { background: #eee; color: #333; margin-bottom: 15px; }
-    .store-id {
-      font-family: monospace; background: #f5f5f5; padding: 8px;
-      border-radius: 6px; text-align: center; font-weight: 600; margin: 10px 0;
+    .confirm-btn {
+      margin-top: 8px; width: 100%; padding: 10px; background: #2A9D8F;
+      color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;
     }
-    .product-list-scroll { max-height: 320px; overflow-y: auto; padding-right: 5px; }
-    .category-title {
-      font-size: 14px; font-weight: 700; color: var(--accent);
-      margin: 15px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #eee;
+    
+    /* Control Buttons */
+    .controls {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 100;
     }
-    .hint-text { font-size: 12px; color: #888; margin: 5px 0 10px; }
+    .ctrl-btn {
+      padding: 12px 20px; border: none; border-radius: 8px;
+      font-weight: 700; cursor: pointer; transition: transform 0.2s;
+    }
+    .btn-open { background: #4CAF50; color: white; }
+    .btn-close { background: #E63946; color: white; }
+    .btn-open:hover, .btn-close:hover { transform: scale(1.05); }
+    
+    /* Message */
+    .message {
+      position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.8); color: white;
+      padding: 12px 25px; border-radius: 8px; z-index: 150;
+      display: none;
+    }
+    .message.show { display: block; animation: fadeOut 3s forwards; }
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; display: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- ROLE SELECTION -->
-    <div id="role-screen">
-      <div class="card">
-        <div class="title">🏪 Store & Customer Game</div>
-        <div class="subtitle">Konektado sa iisang Hotspot / Wi-Fi</div>
-        <button class="role-btn btn-store" onclick="selectRole('store')">🏪 Ako ay Tindero/Tindera</button>
-        <button class="role-btn btn-customer" onclick="selectRole('customer')">🛒 Ako ay Customer</button>
-      </div>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="stat">
+      <div>Kita</div>
+      <div class="stat-value money">₱<span id="money">500.00</span></div>
     </div>
-
-    <!-- STORE SCREEN -->
-    <div id="store-screen" class="hidden">
-      <button class="btn back-btn" onclick="goBack()">← Bumalik</button>
-      <div class="card">
-        <div class="title">🏪 Tindahan</div>
-        <div class="store-id" id="my-store-id">ID: Naglo-load...</div>
-        
-        <p class="hint-text">✅ Awtomatikong nilagay ang mga produkto sa ibaba!</p>
-        
-        <!-- Optional Add Product -->
-        <details style="margin:15px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
-          <summary style="cursor:pointer; font-weight:600;">➕ Magdagdag ng SARILING produkto (opsyonal)</summary>
-          <div style="margin-top:10px;">
-            <div class="input-group">
-              <label>Pangalan ng Produkto</label>
-              <input type="text" id="prod-name" placeholder="Hal. Kape, Tinapay...">
-            </div>
-            <div class="input-group">
-              <label>Presyo (₱)</label>
-              <input type="number" id="prod-price" placeholder="Hal. 25" min="1">
-            </div>
-            <button class="btn btn-primary" onclick="addProduct()">✅ Idagdag sa Tindahan</button>
-          </div>
-        </details>
-
-        <h3 style="margin:10px 0;">📋 Mga Produkto sa Tindahan</h3>
-        <div class="product-list-scroll" id="store-products">
-          <p style="color:#888; text-align:center; padding:20px;">Naglo-load...</p>
-        </div>
-
-        <h3 style="margin:20px 0 10px;">🛒 Kasalukuyang Order</h3>
-        <div id="cart-items">
-          <p style="color:#aaa; text-align:center; padding:10px;">I-click ang <strong>+</strong> sa produkto para ilagay sa order</p>
-        </div>
-        <div style="font-size:20px; font-weight:700; text-align:right; margin:15px 0;">
-          Kabuuan: <span id="cart-total">₱0.00</span>
-        </div>
-        <button class="btn btn-secondary" onclick="generatePaymentQR()">📱 Ipakita ang QR Code</button>
-
-        <div class="qrcode-container hidden" id="qr-container">
-          <div>
-            <p style="text-align:center; font-weight:600; margin-bottom:10px;">I-scan ng Customer ang QR na ito</p>
-            <div id="qr-code"></div>
-            <p style="text-align:center; font-size:12px; color:#666; margin-top:8px;">Order ID: <span id="order-id-display"></span></p>
-          </div>
-        </div>
-
-        <div id="payment-status" class="status hidden"></div>
-
-        <h3 style="margin:25px 0 10px;">📝 Mga Bayad</h3>
-        <div class="transaction-log" id="store-log"></div>
-      </div>
+    <div class="stat">
+      <div>Kalinis</div>
+      <div class="stat-value clean"><span id="cleanliness">100</span>%</div>
     </div>
-
-    <!-- CUSTOMER SCREEN -->
-    <div id="customer-screen" class="hidden">
-      <button class="btn back-btn" onclick="goBack()">← Bumalik</button>
-      <div class="card">
-        <div class="title">🛒 Customer Wallet</div>
-        
-        <div class="balance-display">💰 ₱<span id="wallet-balance">1000.00</span></div>
-
-        <div class="input-group">
-          <label>Ilagay ang Store ID</label>
-          <input type="text" id="connect-store-id" placeholder="Ipasok ang ID ng Tindahan">
-        </div>
-        <button class="btn btn-primary" onclick="connectToStore()">🔌 Kumonekta sa Tindahan</button>
-
-        <div class="scan-area" id="scan-zone" onclick="simulateScan()">
-          <p style="font-size:18px; font-weight:600; color:var(--primary);">📱 I-tap dito para magbayad</p>
-          <p style="font-size:12px; color:#666; margin-top:8px;">O i-paste ang payment link dito</p>
-          <input type="text" id="scan-input" placeholder="I-paste dito ang link galing sa QR" 
-                 style="margin-top:12px; text-align:center; display:none;">
-        </div>
-
-        <div id="payment-details" class="hidden">
-          <h3 style="margin:15px 0 10px;">📋 Babayaran</h3>
-          <p>Tindahan: <span id="pay-store-name"></span></p>
-          <p>Halaga: <strong style="font-size:24px; color:var(--danger);" id="pay-amount">₱0.00</strong></p>
-          <p>Order ID: <span id="pay-order-id"></span></p>
-          
-          <button class="btn btn-primary" style="margin-top:15px;" onclick="confirmPayment()">✅ Kumpirmahin ang Bayad</button>
-          <button class="btn btn-danger" style="margin-top:8px;" onclick="cancelPayment()">❌ Kanselahin</button>
-        </div>
-
-        <div id="cust-status" class="status hidden"></div>
-
-        <h3 style="margin:25px 0 10px;">📝 Kasaysayan ng Bayad</h3>
-        <div class="transaction-log" id="cust-log"></div>
-      </div>
+    <div class="stat">
+      <div>Oras</div>
+      <div class="stat-value time" id="time">Umaga</div>
+    </div>
+    <div class="stat">
+      <div>Customer</div>
+      <div class="stat-value"><span id="cust-count">0</span></div>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-    import { getDatabase, ref, set, get, update, onChildChanged, off } 
-      from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-
-    // ✅ CONFIG MO
-    const firebaseConfig = {
-      apiKey: "AIzaSyAxuB4gacmWIf3U4Ic5TsOxSHCaynR0vhw",
-      authDomain: "bpos-pos.firebaseapp.com",
-      projectId: "bpos-pos",
-      storageBucket: "bpos-pos.firebasestorage.app",
-      messagingSenderId: "1024558399693",
-      appId: "1:1024558399693:web:aa057916aabe419e32a984",
-      measurementId: "G-T43NQSXREJ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // 📦 DEFAULT PRODUCTS — 30 Items! LALABAS AGAD!
-    const DEFAULT_PRODUCTS = [
-      // 🍔 Pagkain
-      { name: 'Classic Burger', price: 85, category: 'Pagkain' },
-      { name: 'Cheese Burger', price: 95, category: 'Pagkain' },
-      { name: 'Double Burger', price: 120, category: 'Pagkain' },
-      { name: 'Chicken Burger', price: 110, category: 'Pagkain' },
-      { name: 'Hotdog Sandwich', price: 55, category: 'Pagkain' },
-      { name: 'Ham & Cheese Sandwich', price: 75, category: 'Pagkain' },
-      { name: 'Egg Sandwich', price: 45, category: 'Pagkain' },
-      { name: 'Pork Siomai (3pcs)', price: 40, category: 'Pagkain' },
-      { name: 'Chicken Siomai (3pcs)', price: 45, category: 'Pagkain' },
-      { name: 'Lumpiang Shanghai', price: 35, category: 'Pagkain' },
-      { name: 'Fried Chicken 1pc', price: 65, category: 'Pagkain' },
-      { name: 'Fried Chicken 2pcs', price: 110, category: 'Pagkain' },
-      { name: 'Pancit Canton', price: 50, category: 'Pagkain' },
-      { name: 'Spaghetti', price: 60, category: 'Pagkain' },
-      { name: 'Rice Bowl — Chicken', price: 75, category: 'Pagkain' },
-      { name: 'Rice Bowl — Pork', price: 80, category: 'Pagkain' },
+  <!-- Game Area -->
+  <div class="game-container">
+    <div class="store">
+      <div class="roof"></div>
+      <div class="sign">🏪 FAST FOOD</div>
       
-      // 🍟 Meryenda
-      { name: 'French Fries — Small', price: 35, category: 'Meryenda' },
-      { name: 'French Fries — Medium', price: 55, category: 'Meryenda' },
-      { name: 'French Fries — Large', price: 70, category: 'Meryenda' },
-      { name: 'Hash Browns', price: 40, category: 'Meryenda' },
-      { name: 'Donut', price: 25, category: 'Meryenda' },
-      { name: 'Bread with Egg', price: 35, category: 'Meryenda' },
-      { name: 'Cake Slice', price: 65, category: 'Meryenda' },
+      <div class="counter" id="counter">
+        <span class="counter-text">📋 Counter — Pindutin ang Customer</span>
+      </div>
       
-      // 🥤 Inumin
-      { name: 'Hot Coffee', price: 30, category: 'Inumin' },
-      { name: 'Iced Coffee', price: 45, category: 'Inumin' },
-      { name: 'Soft Drink — Small', price: 25, category: 'Inumin' },
-      { name: 'Soft Drink — Large', price: 40, category: 'Inumin' },
-      { name: 'Mineral Water', price: 20, category: 'Inumin' },
-      { name: 'Fruit Juice', price: 35, category: 'Inumin' },
-      { name: 'Chocolate Drink', price: 40, category: 'Inumin' }
+      <div class="tables" id="tables">
+        <div class="table" data-table="0">Lamesa 1</div>
+        <div class="table" data-table="1">Lamesa 2</div>
+        <div class="table" data-table="2">Lamesa 3</div>
+        <div class="table" data-table="3">Lamesa 4</div>
+        <div class="table" data-table="4">Lamesa 5</div>
+        <div class="table" data-table="5">Lamesa 6</div>
+      </div>
+      
+      <div class="door" id="door">Pinto<br>→</div>
+      
+      <!-- Trash Area -->
+      <div id="trash-container"></div>
+      
+      <!-- Customers Area -->
+      <div id="customers-container"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn btn-open" id="open-btn" onclick="openStore()">🔔 Buksan ang Tindahan</button>
+    <button class="ctrl-btn btn-close" id="close-btn" onclick="closeStore()" style="display:none;">🔕 Isara</button>
+  </div>
+
+  <!-- Order Modal -->
+  <div class="modal" id="order-modal">
+    <h3 id="cust-name">Order ng Customer</h3>
+    <div id="menu-list"></div>
+    <button class="confirm-btn" id="confirm-order" onclick="confirmOrder()">✅ Kumpirmahin ang Order</button>
+    <button class="close-btn" onclick="closeModal()">❌ Kanselahin</button>
+  </div>
+
+  <!-- Message -->
+  <div class="message" id="message"></div>
+
+  <script>
+    // ========== GAME DATA ==========
+    const MENU = [
+      { name: 'Burger', price: 85 },
+      { name: 'Cheese Burger', price: 95 },
+      { name: 'Fries — Large', price: 70 },
+      { name: 'Fries — Small', price: 35 },
+      { name: 'Fried Chicken', price: 65 },
+      { name: 'Spaghetti', price: 60 },
+      { name: 'Hot Coffee', price: 30 },
+      { name: 'Iced Coffee', price: 45 },
+      { name: 'Soft Drink', price: 25 },
+      { name: 'Mineral Water', price: 20 }
     ];
 
-    let currentRole = null, myStoreId = null, connectedStoreId = null;
-    let walletBalance = 1000.00, cart = [], pendingPayment = null;
-    let paymentUnsubscribe = null;
-
-    window.selectRole = function(role) {
-      currentRole = role;
-      document.getElementById('role-screen').classList.add('hidden');
-      role === 'store' ? (document.getElementById('store-screen').classList.remove('hidden'), initStore())
-                       : (document.getElementById('customer-screen').classList.remove('hidden'), initCustomer());
+    let gameState = {
+      money: 500,
+      cleanliness: 100,
+      isOpen: false,
+      timeOfDay: 'Umaga',
+      customersServed: 0,
+      customers: [],
+      selectedCustomer: null,
+      selectedOrder: null
     };
 
-    window.goBack = function() {
-      if (paymentUnsubscribe) { off(paymentUnsubscribe); paymentUnsubscribe = null; }
-      currentRole = null; cart = []; pendingPayment = null; connectedStoreId = null;
-      document.getElementById('role-screen').classList.remove('hidden');
-      document.getElementById('store-screen').classList.add('hidden');
-      document.getElementById('customer-screen').classList.add('hidden');
+    const NAMES = ['Juan', 'Maria', 'Pedro', 'Ana', 'Luis', 'Sofia', 'Miguel', 'Carmen', 'Jose', 'Rosa', 'Paolo', 'Bea', 'Mark', 'Jenny'];
+
+    // ========== INITIALIZE ==========
+    window.onload = function() {
+      generateTrash();
+      updateUI();
     };
 
-    async function initStore() {
-      myStoreId = 'STORE-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-      document.getElementById('my-store-id').textContent = `ID: ${myStoreId}`;
-      
-      await set(ref(db, 'stores/' + myStoreId), {
-        name: 'Tindahan',
-        createdAt: Date.now()
-      });
-
-      // ✅ Agad na ilalagay ang mga produkto — hindi na maghihintay!
-      const snap = await get(ref(db, `stores/${myStoreId}/products`));
-      if (!snap.exists() || !snap.val() || Object.keys(snap.val()).length === 0) {
-        // Diretsong ilagay — walang delay
-        const productsObj = {};
-        DEFAULT_PRODUCTS.forEach(prod => {
-          const pid = 'prod-' + btoa(prod.name).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
-          productsObj[pid] = { name: prod.name, price: prod.price, category: prod.category };
-        });
-        await set(ref(db, `stores/${myStoreId}/products`), productsObj);
-      }
-
-      listenForPayments();
-      renderStoreProducts();
-    }
-
-    window.addProduct = async function() {
-      const name = document.getElementById('prod-name').value.trim();
-      const price = parseFloat(document.getElementById('prod-price').value);
-      
-      if (!name || !price || price <= 0) {
-        return alert('Punan nang tama ang pangalan at presyo!');
-      }
-      const productId = 'prod-' + Date.now();
-      await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
-        name, price, category: 'Iba pa'
-      });
-      document.getElementById('prod-name').value = '';
-      document.getElementById('prod-price').value = '';
-      renderStoreProducts();
-      alert('✅ Naidagdag na sa tindahan!');
-    };
-
-    async function renderStoreProducts() {
-      const snap = await get(ref(db, `stores/${myStoreId}/products`));
-      const products = snap.val() || {};
-      const container = document.getElementById('store-products');
+    // ========== TRASH SYSTEM ==========
+    function generateTrash() {
+      const container = document.getElementById('trash-container');
       container.innerHTML = '';
-
-      if (Object.keys(products).length === 0) {
-        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Walang produkto</p>';
-        return;
-      }
-
-      // I-grupo ayon sa kategorya
-      const groups = { '🍔 Pagkain': [], '🍟 Meryenda': [], '🥤 Inumin': [], '📦 Iba pa': [] };
-      Object.entries(products).forEach(([id, p]) => {
-        const cat = p.category || 'Iba pa';
-        let label = '📦 Iba pa';
-        if (cat === 'Pagkain') label = '🍔 Pagkain';
-        else if (cat === 'Meryenda') label = '🍟 Meryenda';
-        else if (cat === 'Inumin') label = '🥤 Inumin';
-        if (!groups[label]) groups[label] = [];
-        groups[label].push({ id, ...p });
-      });
-
-      let hasItems = false;
-      for (const [groupName, items] of Object.entries(groups)) {
-        if (items.length === 0) continue;
-        hasItems = true;
-        container.innerHTML += `<div class="category-title">${groupName}</div>`;
-        items.forEach(p => {
-          const inCart = cart.some(c => c.id === p.id);
-          container.innerHTML += `
-            <div class="product-item">
-              <div>
-                <div style="font-weight:600;">${p.name}</div>
-                <div style="font-size:13px; color:#666;">₱${p.price.toFixed(2)}</div>
-              </div>
-              <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" 
-                      style="width:auto; padding:8px 12px; font-size:13px;"
-                      onclick="${inCart ? `removeFromCart('${p.id}')` : `addToCart('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price})`}">
-                ${inCart ? '✓' : '+'}
-              </button>
-            </div>`;
-        });
-      }
-
-      if (!hasItems) {
-        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Walang produkto</p>';
-      }
-    }
-
-    window.addToCart = function(id, name, price) {
-      cart.push({ id, name, price });
-      updateCartDisplay();
-      renderStoreProducts();
-    };
-
-    window.removeFromCart = function(id) {
-      cart = cart.filter(c => c.id !== id);
-      updateCartDisplay();
-      renderStoreProducts();
-    };
-
-    function updateCartDisplay() {
-      const itemsEl = document.getElementById('cart-items');
-      const totalEl = document.getElementById('cart-total');
       
-      if (cart.length === 0) {
-        itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">I-click ang + sa produkto</p>';
-        totalEl.textContent = '₱0.00';
-        return;
-      }
-
-      const total = cart.reduce((sum, i) => sum + i.price, 0);
-      itemsEl.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <span>${item.name}</span>
-          <span>₱${item.price.toFixed(2)}</span>
-        </div>
-      `).join('');
-      totalEl.textContent = `₱${total.toFixed(2)}`;
-    }
-
-    window.generatePaymentQR = async function() {
-      if (cart.length === 0) {
-        return alert('Magdagdag muna ng produkto sa order!');
-      }
-      const total = cart.reduce((sum, i) => sum + i.price, 0);
-      const orderId = 'ORDER-' + Date.now();
-      await set(ref(db, 'payments/' + orderId), {
-        storeId: myStoreId,
-        orderId,
-        amount: total,
-        items: cart,
-        status: 'pending',
-        createdAt: Date.now()
-      });
-      const qrData = window.location.origin + window.location.pathname + '?pay=' + orderId;
-      
-      document.getElementById('qr-container').classList.remove('hidden');
-      document.getElementById('order-id-display').textContent = orderId;
-      
-      const qrContainer = document.getElementById('qr-code');
-      qrContainer.innerHTML = '';
-      QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, (err, canvas) => {
-        if (!err) qrContainer.appendChild(canvas);
-      });
-      showPaymentStatus('pending', 'Naghihintay ng bayad mula sa customer...');
-    }
-
-    function listenForPayments() {
-      paymentUnsubscribe = onChildChanged(ref(db, 'payments'), (snap) => {
-        const pay = snap.val();
-        if (pay.storeId === myStoreId && pay.status === 'paid') {
-          showPaymentStatus('success', `✅ Nakatanggap ng bayad! ₱${pay.amount.toFixed(2)}`);
-          addStoreLog(pay.orderId, pay.amount);
-          setTimeout(() => {
-            cart = []; updateCartDisplay();
-            document.getElementById('qr-container').classList.add('hidden');
-          }, 3000);
+      if (gameState.cleanliness < 70) {
+        const trashCount = Math.floor((100 - gameState.cleanliness) / 15);
+        for (let i = 0; i < Math.min(trashCount, 6); i++) {
+          const trash = document.createElement('div');
+          trash.className = 'trash';
+          trash.innerHTML = '🗑️';
+          trash.style.left = `${10 + Math.random() * 70}%`;
+          trash.style.top = `${35 + Math.random() * 45}%`;
+          trash.onclick = () => collectTrash(trash);
+          container.appendChild(trash);
         }
-      });
-    }
-
-    function showPaymentStatus(type, msg) {
-      const el = document.getElementById('payment-status');
-      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
-    }
-
-    function addStoreLog(orderId, amount) {
-      const log = document.getElementById('store-log');
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      entry.innerHTML = `✅ ${new Date().toLocaleTimeString()} — ${orderId}: ₱${amount.toFixed(2)}`;
-      log.insertBefore(entry, log.firstChild);
-    }
-
-    // ============= CUSTOMER =============
-    function initCustomer() {
-      document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-      const urlParams = new URLSearchParams(window.location.search);
-      const payOrderId = urlParams.get('pay');
-      if (payOrderId) processPaymentLink(payOrderId);
-    }
-
-    window.connectToStore = async function() {
-      const sid = document.getElementById('connect-store-id').value.trim().toUpperCase();
-      if (!sid.startsWith('STORE-')) return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
-      const snap = await get(ref(db, 'stores/' + sid));
-      if (!snap.exists()) return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
-      connectedStoreId = sid;
-      alert('✅ Nakakonekta na sa tindahan! I-scan na ang QR para magbayad.');
-    }
-
-    window.simulateScan = function() {
-      const input = document.getElementById('scan-input');
-      input.style.display = input.style.display === 'none' ? 'block' : 'none';
-      input.focus();
-      input.onpaste = (e) => {
-        setTimeout(() => {
-          const text = e.clipboardData.getData('text');
-          if (text.includes('pay=')) {
-            const orderId = new URL(text).searchParams.get('pay');
-            if (orderId) processPaymentLink(orderId);
-          }
-        }, 100);
-      };
-    }
-
-    async function processPaymentLink(orderId) {
-      const snap = await get(ref(db, 'payments/' + orderId));
-      if (!snap.exists()) return showCustStatus('error', 'Hindi mahanap ang order!');
-      const pay = snap.val();
-      if (pay.status === 'paid') return showCustStatus('error', 'Bayad na ang order na ito!');
-      pendingPayment = { ...pay, orderId };
-      document.getElementById('payment-details').classList.remove('hidden');
-      document.getElementById('pay-store-name').textContent = pay.storeId;
-      document.getElementById('pay-amount').textContent = `₱${pay.amount.toFixed(2)}`;
-      document.getElementById('pay-order-id').textContent = orderId;
-    }
-
-    window.confirmPayment = async function() {
-      if (!pendingPayment) return;
-      const amount = pendingPayment.amount;
-      if (walletBalance < amount) {
-        return showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
       }
-      walletBalance -= amount;
-      document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-      await update(ref(db, 'payments/' + pendingPayment.orderId), {
-        status: 'paid', paidAt: Date.now(), customerBalanceAfter: walletBalance
+    }
+
+    function collectTrash(el) {
+      el.style.transform = 'scale(0)';
+      setTimeout(() => el.remove(), 200);
+      
+      gameState.cleanliness = Math.min(100, gameState.cleanliness + 15);
+      showMessage('🧹 Nilinis! Kalinisan: ' + gameState.cleanliness + '%');
+      updateUI();
+      
+      if (gameState.cleanliness >= 100) {
+        showMessage('✨ Malinis na ang tindahan! Pwede nang magbukas!');
+      }
+    }
+
+    // ========== STORE CONTROL ==========
+    function openStore() {
+      if (gameState.cleanliness < 50) {
+        showMessage('⚠️ Hindi pa pwede! Linisin muna ang tindahan.');
+        return;
+      }
+      
+      gameState.isOpen = true;
+      gameState.timeOfDay = 'Tanghali';
+      document.getElementById('open-btn').style.display = 'none';
+      document.getElementById('close-btn').style.display = 'block';
+      
+      showMessage('🔔 BUKAS NA! Papasok na ang mga customer...');
+      updateUI();
+      
+      // Start spawning customers
+      setInterval(() => {
+        if (gameState.isOpen && gameState.customers.length < 6) {
+          spawnCustomer();
+        }
+      }, 4000);
+      
+      // First customer
+      setTimeout(spawnCustomer, 1500);
+    }
+
+    function closeStore() {
+      gameState.isOpen = false;
+      gameState.timeOfDay = 'Gabi';
+      document.getElementById('open-btn').style.display = 'block';
+      document.getElementById('close-btn').style.display = 'none';
+      
+      // Remove remaining customers
+      gameState.customers.forEach(c => {
+        if (c.el) c.el.remove();
       });
-      showCustStatus('success', `✅ Bayad na! Nabawasan ng ₱${amount.toFixed(2)} sa iyong wallet.`);
-      addCustLog(pendingPayment.orderId, amount);
-      pendingPayment = null;
-      document.getElementById('payment-details').classList.add('hidden');
+      gameState.customers = [];
+      
+      // Generate some trash overnight
+      gameState.cleanliness = Math.max(30, gameState.cleanliness - 25);
+      generateTrash();
+      
+      showMessage('🔕 SARADO NA. Maglinis bago magbukas ulit!');
+      updateUI();
     }
 
-    window.cancelPayment = function() {
-      pendingPayment = null;
-      document.getElementById('payment-details').classList.add('hidden');
-      showCustStatus('', 'Kanselahin ang bayad.');
+    // ========== CUSTOMER SYSTEM ==========
+    function spawnCustomer() {
+      const name = NAMES[Math.floor(Math.random() * NAMES.length)];
+      
+      const customer = {
+        id: Date.now() + Math.random(),
+        name: name,
+        state: 'entering', // entering, ordering, waiting, eating, paying, leaving
+        order: null,
+        table: null,
+        el: null
+      };
+      
+      // Create element
+      const el = document.createElement('div');
+      el.className = 'customer';
+      el.innerHTML = `
+        <div class="customer-head"></div>
+        <div class="customer-body"></div>
+        <div class="customer-name">${name}</div>
+      `;
+      el.style.right = '-60px';
+      el.style.bottom = '30px';
+      el.onclick = () => selectCustomer(customer);
+      
+      document.getElementById('customers-container').appendChild(el);
+      customer.el = el;
+      
+      gameState.customers.push(customer);
+      
+      // Walk to counter
+      setTimeout(() => {
+        el.style.right = '180px';
+        customer.state = 'ordering';
+        showMessage(`👤 ${name}: Magandang umaga! Gusto kong umorder.`);
+      }, 500);
+      
+      updateUI();
     }
 
-    function showCustStatus(type, msg) {
-      const el = document.getElementById('cust-status');
-      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
-      if (type === 'success') setTimeout(() => el.classList.add('hidden'), 5000);
+    function selectCustomer(customer) {
+      if (customer.state !== 'ordering') {
+        showMessage(`${customer.name}: Salamat po!`);
+        return;
+      }
+      
+      gameState.selectedCustomer = customer;
+      showOrderModal(customer);
     }
 
-    function addCustLog(orderId, amount) {
-      const log = document.getElementById('cust-log');
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      entry.innerHTML = `💳 ${new Date().toLocaleTimeString()} — ${orderId}: -₱${amount.toFixed(2)} | Natitira: ₱${walletBalance.toFixed(2)}`;
-      log.insertBefore(entry, log.firstChild);
+    function showOrderModal(customer) {
+      const modal = document.getElementById('order-modal');
+      document.getElementById('cust-name').textContent = `Order ni ${customer.name}`;
+      
+      const list = document.getElementById('menu-list');
+      list.innerHTML = '';
+      
+      MENU.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'menu-item';
+        div.innerHTML = `
+          <span>${item.name}</span>
+          <span><strong>₱${item.price.toFixed(2)}</strong></span>
+        `;
+        div.onclick = () => {
+          gameState.selectedOrder = item;
+          document.querySelectorAll('.menu-item').forEach(e => e.style.border = 'none');
+          div.style.border = '2px solid #2A9D8F';
+        };
+        list.appendChild(div);
+      });
+      
+      modal.classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('order-modal').classList.remove('show');
+      gameState.selectedCustomer = null;
+      gameState.selectedOrder = null;
+    }
+
+    function confirmOrder() {
+      if (!gameState.selectedOrder) {
+        showMessage('Pumili muna ng pagkain!');
+        return;
+      }
+      
+      const customer = gameState.selectedCustomer;
+      const order = gameState.selectedOrder;
+      
+      customer.order = order;
+      customer.state = 'waiting';
+      
+      closeModal();
+      
+      showMessage(`✅ ${customer.name}: ${order.name} — ₱${order.price.toFixed(2)} Salamat!`);
+      
+      // Find empty table
+      const tables = document.querySelectorAll('.table:not(.occupied)');
+      if (tables.length > 0) {
+        const table = tables[Math.floor(Math.random() * tables.length)];
+        table.classList.add('occupied');
+        customer.table = table;
+        
+        // Move to table
+        customer.el.style.right = `${15 + Math.random() * 40}%`;
+        customer.state = 'eating';
+        
+        // Eat then pay
+        setTimeout(() => finishEating(customer), 4000 + Math.random() * 3000);
+      } else {
+        // No table — pay and leave
+        setTimeout(() => payAndLeave(customer), 2000);
+      }
+    }
+
+    function finishEating(customer) {
+      showMessage(`🍽️ ${customer.name}: Busog na! Magbabayad na.`);
+      payAndLeave(customer);
+    }
+
+    function payAndLeave(customer) {
+      customer.state = 'paying';
+      
+      // Add money
+      gameState.money += customer.order.price;
+      gameState.customersServed++;
+      
+      showMessage(`💸 Nakatanggap ng ₱${customer.order.price.toFixed(2)} mula kay ${customer.name}!`);
+      
+      // Free table
+      if (customer.table) {
+        customer.table.classList.remove('occupied');
+      }
+      
+      // Walk out
+      customer.el.style.right = '-60px';
+      customer.state = 'leaving';
+      
+      // Remove
+      setTimeout(() => {
+        if (customer.el) customer.el.remove();
+        gameState.customers = gameState.customers.filter(c => c.id !== customer.id);
+        updateUI();
+      }, 1000);
+      
+      updateUI();
+    }
+
+    // ========== UTILITIES ==========
+    function showMessage(text) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+
+    function updateUI() {
+      document.getElementById('money').textContent = gameState.money.toFixed(2);
+      document.getElementById('cleanliness').textContent = gameState.cleanliness;
+      document.getElementById('time').textContent = gameState.timeOfDay;
+      document.getElementById('cust-count').textContent = gameState.customersServed;
+      
+      // Trash appears when dirty
+      if (gameState.cleanliness < 70) {
+        generateTrash();
+      }
     }
   </script>
 </body>
