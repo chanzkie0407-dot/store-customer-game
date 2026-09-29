@@ -71,11 +71,12 @@
       font-family: monospace; background: #f5f5f5; padding: 8px;
       border-radius: 6px; text-align: center; font-weight: 600; margin: 10px 0;
     }
-    .product-list-scroll { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+    .product-list-scroll { max-height: 320px; overflow-y: auto; padding-right: 5px; }
     .category-title {
       font-size: 14px; font-weight: 700; color: var(--accent);
       margin: 15px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #eee;
     }
+    .hint-text { font-size: 12px; color: #888; margin: 5px 0 10px; }
   </style>
 </head>
 <body>
@@ -97,22 +98,33 @@
         <div class="title">🏪 Tindahan</div>
         <div class="store-id" id="my-store-id">ID: Naglo-load...</div>
         
-        <h3 style="margin:15px 0 10px;">➕ Magdagdag ng Bagong Produkto</h3>
-        <div class="input-group">
-          <label>Pangalan ng Produkto</label>
-          <input type="text" id="prod-name" placeholder="Hal. Kape, Tinapay...">
-        </div>
-        <div class="input-group">
-          <label>Presyo (₱)</label>
-          <input type="number" id="prod-price" placeholder="Hal. 25" min="1">
-        </div>
-        <button class="btn btn-primary" onclick="addProduct()">✅ Idagdag sa Tindahan</button>
+        <p class="hint-text">✅ Awtomatikong nilagay ang mga produkto sa ibaba!</p>
+        
+        <!-- Optional Add Product -->
+        <details style="margin:15px 0; padding:10px; background:#f9f9f9; border-radius:8px;">
+          <summary style="cursor:pointer; font-weight:600;">➕ Magdagdag ng SARILING produkto (opsyonal)</summary>
+          <div style="margin-top:10px;">
+            <div class="input-group">
+              <label>Pangalan ng Produkto</label>
+              <input type="text" id="prod-name" placeholder="Hal. Kape, Tinapay...">
+            </div>
+            <div class="input-group">
+              <label>Presyo (₱)</label>
+              <input type="number" id="prod-price" placeholder="Hal. 25" min="1">
+            </div>
+            <button class="btn btn-primary" onclick="addProduct()">✅ Idagdag sa Tindahan</button>
+          </div>
+        </details>
 
-        <h3 style="margin:25px 0 10px;">📋 Mga Produkto sa Tindahan</h3>
-        <div class="product-list-scroll" id="store-products"></div>
+        <h3 style="margin:10px 0;">📋 Mga Produkto sa Tindahan</h3>
+        <div class="product-list-scroll" id="store-products">
+          <p style="color:#888; text-align:center; padding:20px;">Naglo-load...</p>
+        </div>
 
-        <h3 style="margin:25px 0 10px;">🛒 Kasalukuyang Order</h3>
-        <div id="cart-items"></div>
+        <h3 style="margin:20px 0 10px;">🛒 Kasalukuyang Order</h3>
+        <div id="cart-items">
+          <p style="color:#aaa; text-align:center; padding:10px;">I-click ang <strong>+</strong> sa produkto para ilagay sa order</p>
+        </div>
         <div style="font-size:20px; font-weight:700; text-align:right; margin:15px 0;">
           Kabuuan: <span id="cart-total">₱0.00</span>
         </div>
@@ -191,49 +203,48 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 📦 DEFAULT PRODUCTS — 30 Items!
+    // 📦 DEFAULT PRODUCTS — 30 Items! LALABAS AGAD!
     const DEFAULT_PRODUCTS = [
       // 🍔 Pagkain
-      { name: 'Classic Burger', price: 85 },
-      { name: 'Cheese Burger', price: 95 },
-      { name: 'Double Burger', price: 120 },
-      { name: 'Chicken Burger', price: 110 },
-      { name: 'Hotdog Sandwich', price: 55 },
-      { name: 'Ham & Cheese Sandwich', price: 75 },
-      { name: 'Egg Sandwich', price: 45 },
-      { name: 'Pork Siomai (3pcs)', price: 40 },
-      { name: 'Chicken Siomai (3pcs)', price: 45 },
-      { name: 'Lumpiang Shanghai', price: 35 },
-      { name: 'Fried Chicken 1pc', price: 65 },
-      { name: 'Fried Chicken 2pcs', price: 110 },
-      { name: 'Pancit Canton', price: 50 },
-      { name: 'Spaghetti', price: 60 },
-      { name: 'Rice Bowl — Chicken', price: 75 },
-      { name: 'Rice Bowl — Pork', price: 80 },
+      { name: 'Classic Burger', price: 85, category: 'Pagkain' },
+      { name: 'Cheese Burger', price: 95, category: 'Pagkain' },
+      { name: 'Double Burger', price: 120, category: 'Pagkain' },
+      { name: 'Chicken Burger', price: 110, category: 'Pagkain' },
+      { name: 'Hotdog Sandwich', price: 55, category: 'Pagkain' },
+      { name: 'Ham & Cheese Sandwich', price: 75, category: 'Pagkain' },
+      { name: 'Egg Sandwich', price: 45, category: 'Pagkain' },
+      { name: 'Pork Siomai (3pcs)', price: 40, category: 'Pagkain' },
+      { name: 'Chicken Siomai (3pcs)', price: 45, category: 'Pagkain' },
+      { name: 'Lumpiang Shanghai', price: 35, category: 'Pagkain' },
+      { name: 'Fried Chicken 1pc', price: 65, category: 'Pagkain' },
+      { name: 'Fried Chicken 2pcs', price: 110, category: 'Pagkain' },
+      { name: 'Pancit Canton', price: 50, category: 'Pagkain' },
+      { name: 'Spaghetti', price: 60, category: 'Pagkain' },
+      { name: 'Rice Bowl — Chicken', price: 75, category: 'Pagkain' },
+      { name: 'Rice Bowl — Pork', price: 80, category: 'Pagkain' },
       
       // 🍟 Meryenda
-      { name: 'French Fries — Small', price: 35 },
-      { name: 'French Fries — Medium', price: 55 },
-      { name: 'French Fries — Large', price: 70 },
-      { name: 'Hash Browns', price: 40 },
-      { name: 'Donut', price: 25 },
-      { name: 'Bread with Egg', price: 35 },
-      { name: 'Cake Slice', price: 65 },
+      { name: 'French Fries — Small', price: 35, category: 'Meryenda' },
+      { name: 'French Fries — Medium', price: 55, category: 'Meryenda' },
+      { name: 'French Fries — Large', price: 70, category: 'Meryenda' },
+      { name: 'Hash Browns', price: 40, category: 'Meryenda' },
+      { name: 'Donut', price: 25, category: 'Meryenda' },
+      { name: 'Bread with Egg', price: 35, category: 'Meryenda' },
+      { name: 'Cake Slice', price: 65, category: 'Meryenda' },
       
       // 🥤 Inumin
-      { name: 'Hot Coffee', price: 30 },
-      { name: 'Iced Coffee', price: 45 },
-      { name: 'Soft Drink — Small', price: 25 },
-      { name: 'Soft Drink — Large', price: 40 },
-      { name: 'Mineral Water', price: 20 },
-      { name: 'Fruit Juice', price: 35 },
-      { name: 'Chocolate Drink', price: 40 }
+      { name: 'Hot Coffee', price: 30, category: 'Inumin' },
+      { name: 'Iced Coffee', price: 45, category: 'Inumin' },
+      { name: 'Soft Drink — Small', price: 25, category: 'Inumin' },
+      { name: 'Soft Drink — Large', price: 40, category: 'Inumin' },
+      { name: 'Mineral Water', price: 20, category: 'Inumin' },
+      { name: 'Fruit Juice', price: 35, category: 'Inumin' },
+      { name: 'Chocolate Drink', price: 40, category: 'Inumin' }
     ];
 
     let currentRole = null, myStoreId = null, connectedStoreId = null;
     let walletBalance = 1000.00, cart = [], pendingPayment = null;
     let paymentUnsubscribe = null;
-    let productsInitialized = false;
 
     window.selectRole = function(role) {
       currentRole = role;
@@ -259,27 +270,20 @@
         createdAt: Date.now()
       });
 
-      // Load default products kung wala pa
+      // ✅ Agad na ilalagay ang mga produkto — hindi na maghihintay!
       const snap = await get(ref(db, `stores/${myStoreId}/products`));
       if (!snap.exists() || !snap.val() || Object.keys(snap.val()).length === 0) {
-        await loadDefaultProducts();
+        // Diretsong ilagay — walang delay
+        const productsObj = {};
+        DEFAULT_PRODUCTS.forEach(prod => {
+          const pid = 'prod-' + btoa(prod.name).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
+          productsObj[pid] = { name: prod.name, price: prod.price, category: prod.category };
+        });
+        await set(ref(db, `stores/${myStoreId}/products`), productsObj);
       }
 
       listenForPayments();
       renderStoreProducts();
-    }
-
-    async function loadDefaultProducts() {
-      for (const prod of DEFAULT_PRODUCTS) {
-        const productId = 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
-        await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
-          name: prod.name,
-          price: prod.price,
-          addedAt: Date.now()
-        });
-        await new Promise(r => setTimeout(r, 20)); // para magkaiba ang ID
-      }
-      productsInitialized = true;
     }
 
     window.addProduct = async function() {
@@ -289,15 +293,12 @@
       if (!name || !price || price <= 0) {
         return alert('Punan nang tama ang pangalan at presyo!');
       }
-
       const productId = 'prod-' + Date.now();
       await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
-        name, price, addedAt: Date.now()
+        name, price, category: 'Iba pa'
       });
-
       document.getElementById('prod-name').value = '';
       document.getElementById('prod-price').value = '';
-      
       renderStoreProducts();
       alert('✅ Naidagdag na sa tindahan!');
     };
@@ -309,30 +310,26 @@
       container.innerHTML = '';
 
       if (Object.keys(products).length === 0) {
-        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Naglo-load ang mga produkto...</p>';
+        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Walang produkto</p>';
         return;
       }
 
       // I-grupo ayon sa kategorya
-      const groups = {
-        '🍔 Pagkain': [],
-        '🍟 Meryenda': [],
-        '🥤 Inumin': []
-      };
-
+      const groups = { '🍔 Pagkain': [], '🍟 Meryenda': [], '🥤 Inumin': [], '📦 Iba pa': [] };
       Object.entries(products).forEach(([id, p]) => {
-        const lower = p.name.toLowerCase();
-        let group = 'Iba pa';
-        if (/burger|chicken|sandwich|siomai|lumpia|pancit|spaghetti|rice bowl|egg|pork/.test(lower)) group = '🍔 Pagkain';
-        else if (/fries|hash|donut|bread|cake/.test(lower)) group = '🍟 Meryenda';
-        else if (/coffee|drink|water|juice|chocolate|soft/.test(lower)) group = '🥤 Inumin';
-        
-        if (!groups[group]) groups[group] = [];
-        groups[group].push({ id, ...p });
+        const cat = p.category || 'Iba pa';
+        let label = '📦 Iba pa';
+        if (cat === 'Pagkain') label = '🍔 Pagkain';
+        else if (cat === 'Meryenda') label = '🍟 Meryenda';
+        else if (cat === 'Inumin') label = '🥤 Inumin';
+        if (!groups[label]) groups[label] = [];
+        groups[label].push({ id, ...p });
       });
 
+      let hasItems = false;
       for (const [groupName, items] of Object.entries(groups)) {
         if (items.length === 0) continue;
+        hasItems = true;
         container.innerHTML += `<div class="category-title">${groupName}</div>`;
         items.forEach(p => {
           const inCart = cart.some(c => c.id === p.id);
@@ -345,10 +342,14 @@
               <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" 
                       style="width:auto; padding:8px 12px; font-size:13px;"
                       onclick="${inCart ? `removeFromCart('${p.id}')` : `addToCart('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price})`}">
-                ${inCart ? '✓ Nasa Basket' : '+'}
+                ${inCart ? '✓' : '+'}
               </button>
             </div>`;
         });
+      }
+
+      if (!hasItems) {
+        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Walang produkto</p>';
       }
     }
 
@@ -369,7 +370,7 @@
       const totalEl = document.getElementById('cart-total');
       
       if (cart.length === 0) {
-        itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">Magdagdag ng produkto sa order</p>';
+        itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">I-click ang + sa produkto</p>';
         totalEl.textContent = '₱0.00';
         return;
       }
@@ -388,10 +389,8 @@
       if (cart.length === 0) {
         return alert('Magdagdag muna ng produkto sa order!');
       }
-
       const total = cart.reduce((sum, i) => sum + i.price, 0);
       const orderId = 'ORDER-' + Date.now();
-
       await set(ref(db, 'payments/' + orderId), {
         storeId: myStoreId,
         orderId,
@@ -400,7 +399,6 @@
         status: 'pending',
         createdAt: Date.now()
       });
-
       const qrData = window.location.origin + window.location.pathname + '?pay=' + orderId;
       
       document.getElementById('qr-container').classList.remove('hidden');
@@ -411,9 +409,8 @@
       QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, (err, canvas) => {
         if (!err) qrContainer.appendChild(canvas);
       });
-
       showPaymentStatus('pending', 'Naghihintay ng bayad mula sa customer...');
-    };
+    }
 
     function listenForPayments() {
       paymentUnsubscribe = onChildChanged(ref(db, 'payments'), (snap) => {
@@ -421,21 +418,17 @@
         if (pay.storeId === myStoreId && pay.status === 'paid') {
           showPaymentStatus('success', `✅ Nakatanggap ng bayad! ₱${pay.amount.toFixed(2)}`);
           addStoreLog(pay.orderId, pay.amount);
-          
           setTimeout(() => {
-            cart = [];
-            updateCartDisplay();
+            cart = []; updateCartDisplay();
             document.getElementById('qr-container').classList.add('hidden');
           }, 3000);
         }
       });
     }
 
-    function showPaymentStatus(type, message) {
+    function showPaymentStatus(type, msg) {
       const el = document.getElementById('payment-status');
-      el.className = `status status-${type}`;
-      el.textContent = message;
-      el.classList.remove('hidden');
+      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
     }
 
     function addStoreLog(orderId, amount) {
@@ -449,58 +442,41 @@
     // ============= CUSTOMER =============
     function initCustomer() {
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-      
       const urlParams = new URLSearchParams(window.location.search);
       const payOrderId = urlParams.get('pay');
-      if (payOrderId) {
-        processPaymentLink(payOrderId);
-      }
+      if (payOrderId) processPaymentLink(payOrderId);
     }
 
     window.connectToStore = async function() {
       const sid = document.getElementById('connect-store-id').value.trim().toUpperCase();
-      if (!sid.startsWith('STORE-')) {
-        return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
-      }
-
+      if (!sid.startsWith('STORE-')) return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
       const snap = await get(ref(db, 'stores/' + sid));
-      if (!snap.exists()) {
-        return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
-      }
+      if (!snap.exists()) return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
       connectedStoreId = sid;
       alert('✅ Nakakonekta na sa tindahan! I-scan na ang QR para magbayad.');
-    };
+    }
 
     window.simulateScan = function() {
       const input = document.getElementById('scan-input');
       input.style.display = input.style.display === 'none' ? 'block' : 'none';
       input.focus();
-      
       input.onpaste = (e) => {
         setTimeout(() => {
           const text = e.clipboardData.getData('text');
           if (text.includes('pay=')) {
-            const url = new URL(text);
-            const orderId = url.searchParams.get('pay');
+            const orderId = new URL(text).searchParams.get('pay');
             if (orderId) processPaymentLink(orderId);
           }
         }, 100);
       };
-    };
+    }
 
     async function processPaymentLink(orderId) {
       const snap = await get(ref(db, 'payments/' + orderId));
-      if (!snap.exists()) {
-        return showCustStatus('error', 'Hindi mahanap ang order!');
-      }
-
+      if (!snap.exists()) return showCustStatus('error', 'Hindi mahanap ang order!');
       const pay = snap.val();
-      if (pay.status === 'paid') {
-        return showCustStatus('error', 'Bayad na ang order na ito!');
-      }
-
+      if (pay.status === 'paid') return showCustStatus('error', 'Bayad na ang order na ito!');
       pendingPayment = { ...pay, orderId };
-      
       document.getElementById('payment-details').classList.remove('hidden');
       document.getElementById('pay-store-name').textContent = pay.storeId;
       document.getElementById('pay-amount').textContent = `₱${pay.amount.toFixed(2)}`;
@@ -509,43 +485,31 @@
 
     window.confirmPayment = async function() {
       if (!pendingPayment) return;
-      
       const amount = pendingPayment.amount;
       if (walletBalance < amount) {
         return showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
       }
-
       walletBalance -= amount;
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-
       await update(ref(db, 'payments/' + pendingPayment.orderId), {
-        status: 'paid',
-        paidAt: Date.now(),
-        customerBalanceAfter: walletBalance
+        status: 'paid', paidAt: Date.now(), customerBalanceAfter: walletBalance
       });
-
       showCustStatus('success', `✅ Bayad na! Nabawasan ng ₱${amount.toFixed(2)} sa iyong wallet.`);
       addCustLog(pendingPayment.orderId, amount);
-      
       pendingPayment = null;
       document.getElementById('payment-details').classList.add('hidden');
-    };
+    }
 
     window.cancelPayment = function() {
       pendingPayment = null;
       document.getElementById('payment-details').classList.add('hidden');
       showCustStatus('', 'Kanselahin ang bayad.');
-    };
+    }
 
-    function showCustStatus(type, message) {
+    function showCustStatus(type, msg) {
       const el = document.getElementById('cust-status');
-      el.className = `status status-${type}`;
-      el.textContent = message;
-      el.classList.remove('hidden');
-      
-      if (type === 'success') {
-        setTimeout(() => el.classList.add('hidden'), 5000);
-      }
+      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
+      if (type === 'success') setTimeout(() => el.classList.add('hidden'), 5000);
     }
 
     function addCustLog(orderId, amount) {
