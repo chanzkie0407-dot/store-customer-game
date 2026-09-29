@@ -6,218 +6,92 @@
   <title>🏪 Store & Customer — Local Hotspot Game</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
     :root {
-      --primary: #2A9D8F;
-      --secondary: #FFB703;
-      --accent: #1D3557;
-      --danger: #E63946;
-      --light: #F1FAEE;
+      --primary: #2A9D8F; --secondary: #FFB703; --accent: #1D3557;
+      --danger: #E63946; --light: #F1FAEE;
     }
     body {
       background: linear-gradient(135deg, #F1FAEE 0%, #A8DADC 100%);
-      min-height: 100vh;
-      padding: 15px;
+      min-height: 100vh; padding: 15px;
     }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-    }
+    .container { max-width: 500px; margin: 0 auto; }
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 25px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background: white; border-radius: 16px; padding: 25px;
+      margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .title {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .subtitle {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 15px;
-      text-align: center;
-    }
+    .title { font-size: 22px; font-weight: 700; color: var(--accent); text-align: center; margin-bottom: 20px; }
+    .subtitle { font-size: 14px; color: #666; text-align: center; margin-bottom: 15px; }
     .role-btn {
-      width: 100%;
-      padding: 25px;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: 15px;
+      width: 100%; padding: 25px; border: none; border-radius: 12px;
+      font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 15px;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    .role-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    }
-    .btn-store {
-      background: var(--primary);
-      color: white;
-    }
-    .btn-customer {
-      background: var(--secondary);
-      color: #222;
-    }
+    .role-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .btn-store { background: var(--primary); color: white; }
+    .btn-customer { background: var(--secondary); color: #222; }
     .hidden { display: none !important; }
     .balance-display {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary);
-      text-align: center;
-      padding: 20px;
-      background: #E8F8F5;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      font-size: 32px; font-weight: 700; color: var(--primary); text-align: center;
+      padding: 20px; background: #E8F8F5; border-radius: 12px; margin-bottom: 20px;
     }
-    .input-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 5px;
-      color: #333;
-    }
+    .input-group { margin-bottom: 15px; }
+    label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
     input, button {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
+      width: 100%; padding: 12px; border: 2px solid #ddd;
+      border-radius: 8px; font-size: 16px;
     }
-    input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    .btn {
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-      border-radius: 8px;
-    }
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
+    input:focus { outline: none; border-color: var(--primary); }
+    .btn { border: none; font-weight: 700; cursor: pointer; border-radius: 8px; transition: background 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: #21867C; }
-    .btn-secondary {
-      background: var(--secondary);
-      color: #222;
-    }
+    .btn-secondary { background: var(--secondary); color: #222; }
     .btn-secondary:hover { background: #ffc107; }
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
+    .btn-danger { background: var(--danger); color: white; }
     .btn-danger:hover { background: #c92a37; }
     .product-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      background: var(--light);
-      border-radius: 8px;
-      margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: var(--light); border-radius: 8px; margin-bottom: 8px;
     }
-    .cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    .qrcode-container {
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      margin: 15px 0;
-    }
-    .status {
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 600;
-      margin: 10px 0;
-    }
+    .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+    .qrcode-container { display: flex; justify-content: center; padding: 20px; background: white; border-radius: 12px; margin: 15px 0; }
+    .status { padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; margin: 10px 0; }
     .status-pending { background: #FFF3CD; color: #856404; }
     .status-success { background: #D4EDDA; color: #155724; }
     .status-error { background: #F8D7DA; color: #721C24; }
     .scan-area {
-      border: 3px dashed var(--primary);
-      border-radius: 12px;
-      padding: 40px 20px;
-      text-align: center;
-      cursor: pointer;
-      margin: 15px 0;
-      transition: background 0.2s;
+      border: 3px dashed var(--primary); border-radius: 12px; padding: 40px 20px;
+      text-align: center; cursor: pointer; margin: 15px 0; transition: background 0.2s;
     }
     .scan-area:hover { background: #E8F8F5; }
-    .transaction-log {
-      margin-top: 15px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .log-entry {
-      padding: 8px;
-      border-bottom: 1px solid #eee;
-      font-size: 13px;
-    }
-    .back-btn {
-      background: #eee;
-      color: #333;
-      margin-bottom: 15px;
-    }
+    .transaction-log { margin-top: 15px; max-height: 200px; overflow-y: auto; }
+    .log-entry { padding: 8px; border-bottom: 1px solid #eee; font-size: 13px; }
+    .back-btn { background: #eee; color: #333; margin-bottom: 15px; }
     .store-id {
-      font-family: monospace;
-      background: #f5f5f5;
-      padding: 8px;
-      border-radius: 6px;
-      text-align: center;
-      font-weight: 600;
-      margin: 10px 0;
+      font-family: monospace; background: #f5f5f5; padding: 8px;
+      border-radius: 6px; text-align: center; font-weight: 600; margin: 10px 0;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- ============= ROLE SELECTION ============= -->
+    <!-- ROLE SELECTION -->
     <div id="role-screen">
       <div class="card">
         <div class="title">🏪 Store & Customer Game</div>
         <div class="subtitle">Konektado sa iisang Hotspot / Wi-Fi</div>
-        <button class="role-btn btn-store" onclick="selectRole('store')">
-          🏪 Ako ay Tindero/Tindera
-        </button>
-        <button class="role-btn btn-customer" onclick="selectRole('customer')">
-          🛒 Ako ay Customer
-        </button>
+        <button class="role-btn btn-store" onclick="selectRole('store')">🏪 Ako ay Tindero/Tindera</button>
+        <button class="role-btn btn-customer" onclick="selectRole('customer')">🛒 Ako ay Customer</button>
       </div>
     </div>
 
-    <!-- ============= TINDERO SCREEN ============= -->
+    <!-- STORE SCREEN -->
     <div id="store-screen" class="hidden">
       <button class="btn back-btn" onclick="goBack()">← Bumalik</button>
       <div class="card">
         <div class="title">🏪 Tindahan</div>
         <div class="store-id" id="my-store-id">ID: Naglo-load...</div>
         
-        <!-- Add Product -->
         <h3 style="margin:15px 0 10px;">➕ Magdagdag ng Produkto</h3>
         <div class="input-group">
           <label>Pangalan ng Produkto</label>
@@ -229,11 +103,9 @@
         </div>
         <button class="btn btn-primary" onclick="addProduct()">✅ Idagdag sa Tindahan</button>
 
-        <!-- Store Products -->
         <h3 style="margin:25px 0 10px;">📋 Mga Produkto sa Tindahan</h3>
         <div id="store-products"></div>
 
-        <!-- Cart / Bill -->
         <h3 style="margin:25px 0 10px;">🛒 Kasalukuyang Order</h3>
         <div id="cart-items"></div>
         <div style="font-size:20px; font-weight:700; text-align:right; margin:15px 0;">
@@ -241,7 +113,6 @@
         </div>
         <button class="btn btn-secondary" onclick="generatePaymentQR()">📱 Ipakita ang QR Code</button>
 
-        <!-- QR Display -->
         <div class="qrcode-container hidden" id="qr-container">
           <div>
             <p style="text-align:center; font-weight:600; margin-bottom:10px;">I-scan ng Customer ang QR na ito</p>
@@ -250,34 +121,27 @@
           </div>
         </div>
 
-        <!-- Payment Status -->
         <div id="payment-status" class="status hidden"></div>
 
-        <!-- Transaction Log -->
         <h3 style="margin:25px 0 10px;">📝 Mga Bayad</h3>
         <div class="transaction-log" id="store-log"></div>
       </div>
     </div>
 
-    <!-- ============= CUSTOMER SCREEN ============= -->
+    <!-- CUSTOMER SCREEN -->
     <div id="customer-screen" class="hidden">
       <button class="btn back-btn" onclick="goBack()">← Bumalik</button>
       <div class="card">
         <div class="title">🛒 Customer Wallet</div>
         
-        <!-- Balance -->
-        <div class="balance-display">
-          💰 ₱<span id="wallet-balance">1000.00</span>
-        </div>
+        <div class="balance-display">💰 ₱<span id="wallet-balance">1000.00</span></div>
 
-        <!-- Store ID Connect -->
         <div class="input-group">
           <label>Ilagay ang Store ID</label>
           <input type="text" id="connect-store-id" placeholder="Ipasok ang ID ng Tindahan">
         </div>
         <button class="btn btn-primary" onclick="connectToStore()">🔌 Kumonekta sa Tindahan</button>
 
-        <!-- Scan Area -->
         <div class="scan-area" id="scan-zone" onclick="simulateScan()">
           <p style="font-size:18px; font-weight:600; color:var(--primary);">📱 I-tap dito para magbayad</p>
           <p style="font-size:12px; color:#666; margin-top:8px;">O i-paste ang payment link dito</p>
@@ -285,7 +149,6 @@
                  style="margin-top:12px; text-align:center; display:none;">
         </div>
 
-        <!-- Payment Details -->
         <div id="payment-details" class="hidden">
           <h3 style="margin:15px 0 10px;">📋 Babayaran</h3>
           <p>Tindahan: <span id="pay-store-name"></span></p>
@@ -296,10 +159,8 @@
           <button class="btn btn-danger" style="margin-top:8px;" onclick="cancelPayment()">❌ Kanselahin</button>
         </div>
 
-        <!-- Status -->
         <div id="cust-status" class="status hidden"></div>
 
-        <!-- Transaction Log -->
         <h3 style="margin:25px 0 10px;">📝 Kasaysayan ng Bayad</h3>
         <div class="transaction-log" id="cust-log"></div>
       </div>
@@ -307,11 +168,11 @@
   </div>
 
   <script type="module">
-    // ============= FIREBASE CONFIG — GAMIT ANG IYO =============
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { getDatabase, ref, set, get, update, onChildChanged, off } 
       from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
+    // ✅ CONFIG MO — GINAMIT KO NA!
     const firebaseConfig = {
       apiKey: "AIzaSyAxuB4gacmWIf3U4Ic5TsOxSHCaynR0vhw",
       authDomain: "bpos-pos.firebaseapp.com",
@@ -322,57 +183,32 @@
       measurementId: "G-T43NQSXREJ"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ============= GLOBAL STATE =============
-    let currentRole = null;
-    let myStoreId = null;
-    let connectedStoreId = null;
-    let walletBalance = 1000.00;
-    let cart = [];
-    let pendingPayment = null;
+    let currentRole = null, myStoreId = null, connectedStoreId = null;
+    let walletBalance = 1000.00, cart = [], pendingPayment = null;
     let paymentUnsubscribe = null;
 
-    // ============= ROLE SELECTION =============
     window.selectRole = function(role) {
       currentRole = role;
       document.getElementById('role-screen').classList.add('hidden');
-      
-      if (role === 'store') {
-        document.getElementById('store-screen').classList.remove('hidden');
-        initStore();
-      } else {
-        document.getElementById('customer-screen').classList.remove('hidden');
-        initCustomer();
-      }
+      role === 'store' ? (document.getElementById('store-screen').classList.remove('hidden'), initStore())
+                       : (document.getElementById('customer-screen').classList.remove('hidden'), initCustomer());
     };
 
     window.goBack = function() {
-      if (paymentUnsubscribe) {
-        off(paymentUnsubscribe);
-        paymentUnsubscribe = null;
-      }
-      currentRole = null;
-      cart = [];
-      pendingPayment = null;
-      connectedStoreId = null;
+      if (paymentUnsubscribe) { off(paymentUnsubscribe); paymentUnsubscribe = null; }
+      currentRole = null; cart = []; pendingPayment = null; connectedStoreId = null;
       document.getElementById('role-screen').classList.remove('hidden');
       document.getElementById('store-screen').classList.add('hidden');
       document.getElementById('customer-screen').classList.add('hidden');
     };
 
-    // ============= TINDERO / STORE LOGIC =============
     async function initStore() {
       myStoreId = 'STORE-' + Math.random().toString(36).substr(2, 6).toUpperCase();
       document.getElementById('my-store-id').textContent = `ID: ${myStoreId}`;
-
-      await set(ref(db, 'stores/' + myStoreId), {
-        name: 'Tindahan ni ' + Math.floor(Math.random() * 1000),
-        createdAt: Date.now()
-      });
-
+      await set(ref(db, 'stores/' + myStoreId), { name: 'Tindahan', createdAt: Date.now() });
       listenForPayments();
       renderStoreProducts();
     }
@@ -380,116 +216,66 @@
     window.addProduct = async function() {
       const name = document.getElementById('prod-name').value.trim();
       const price = parseFloat(document.getElementById('prod-price').value);
-      
-      if (!name || !price || price <= 0) {
-        alert('Punan nang tama ang pangalan at presyo!');
-        return;
-      }
-
+      if (!name || !price || price <= 0) return alert('Punan nang tama ang pangalan at presyo!');
       const productId = 'prod-' + Date.now();
-      await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
-        name,
-        price,
-        addedAt: Date.now()
-      });
-
+      await set(ref(db, `stores/${myStoreId}/products/${productId}`), { name, price });
       cart.push({ id: productId, name, price });
       updateCartDisplay();
-
       document.getElementById('prod-name').value = '';
       document.getElementById('prod-price').value = '';
-      
       renderStoreProducts();
     };
 
     async function renderStoreProducts() {
-      const container = document.getElementById('store-products');
       const snap = await get(ref(db, `stores/${myStoreId}/products`));
       const products = snap.val() || {};
+      const container = document.getElementById('store-products');
       container.innerHTML = '';
-      
       Object.entries(products).forEach(([id, p]) => {
         const inCart = cart.some(c => c.id === id);
         container.innerHTML += `
           <div class="product-item">
-            <div>
-              <div style="font-weight:600;">${p.name}</div>
-              <div style="font-size:13px; color:#666;">₱${p.price.toFixed(2)}</div>
-            </div>
-            <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" 
-                    style="width:auto; padding:8px 12px; font-size:13px;"
+            <div><div style="font-weight:600;">${p.name}</div><div style="font-size:13px; color:#666;">₱${p.price.toFixed(2)}</div></div>
+            <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" style="width:auto; padding:8px 12px; font-size:13px;"
                     onclick="${inCart ? `removeFromCart('${id}')` : `addToCart('${id}', '${p.name}', ${p.price})`}">
               ${inCart ? '✓ Nasa Basket' : '+ Magdagdag'}
             </button>
-          </div>
-        `;
+          </div>`;
       });
     }
 
-    window.addToCart = function(id, name, price) {
-      cart.push({ id, name, price });
-      updateCartDisplay();
-      renderStoreProducts();
-    };
-
-    window.removeFromCart = function(id) {
-      cart = cart.filter(c => c.id !== id);
-      updateCartDisplay();
-      renderStoreProducts();
-    };
+    window.addToCart = function(id, name, price) { cart.push({ id, name, price }); updateCartDisplay(); renderStoreProducts(); };
+    window.removeFromCart = function(id) { cart = cart.filter(c => c.id !== id); updateCartDisplay(); renderStoreProducts(); };
 
     function updateCartDisplay() {
       const itemsEl = document.getElementById('cart-items');
       const totalEl = document.getElementById('cart-total');
-      
       if (cart.length === 0) {
         itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">Wala pang laman ang order</p>';
-        totalEl.textContent = '₱0.00';
-        return;
+        totalEl.textContent = '₱0.00'; return;
       }
-
       const total = cart.reduce((sum, i) => sum + i.price, 0);
-      itemsEl.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <span>${item.name}</span>
-          <span>₱${item.price.toFixed(2)}</span>
-        </div>
-      `).join('');
+      itemsEl.innerHTML = cart.map(i => `<div class="cart-item"><span>${i.name}</span><span>₱${i.price.toFixed(2)}</span></div>`).join('');
       totalEl.textContent = `₱${total.toFixed(2)}`;
     }
 
     window.generatePaymentQR = async function() {
-      if (cart.length === 0) {
-        alert('Magdagdag muna ng produkto sa order!');
-        return;
-      }
-
+      if (cart.length === 0) return alert('Magdagdag muna ng produkto sa order!');
       const total = cart.reduce((sum, i) => sum + i.price, 0);
       const orderId = 'ORDER-' + Date.now();
-
       await set(ref(db, 'payments/' + orderId), {
-        storeId: myStoreId,
-        orderId,
-        amount: total,
-        items: cart,
-        status: 'pending',
-        createdAt: Date.now()
+        storeId: myStoreId, orderId, amount: total, items: cart, status: 'pending', createdAt: Date.now()
       });
-
       const qrData = window.location.origin + window.location.pathname + '?pay=' + orderId;
-      
       document.getElementById('qr-container').classList.remove('hidden');
       document.getElementById('order-id-display').textContent = orderId;
-      
       const qrContainer = document.getElementById('qr-code');
       qrContainer.innerHTML = '';
-      QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, function(err, canvas) {
-        if (err) return console.error(err);
-        qrContainer.appendChild(canvas);
+      QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, (err, canvas) => {
+        if (!err) qrContainer.appendChild(canvas);
       });
-
       showPaymentStatus('pending', 'Naghihintay ng bayad mula sa customer...');
-    }
+    };
 
     function listenForPayments() {
       paymentUnsubscribe = onChildChanged(ref(db, 'payments'), (snap) => {
@@ -497,21 +283,14 @@
         if (pay.storeId === myStoreId && pay.status === 'paid') {
           showPaymentStatus('success', `✅ Nakatanggap ng bayad! ₱${pay.amount.toFixed(2)}`);
           addStoreLog(pay.orderId, pay.amount);
-          
-          setTimeout(() => {
-            cart = [];
-            updateCartDisplay();
-            document.getElementById('qr-container').classList.add('hidden');
-          }, 3000);
+          setTimeout(() => { cart = []; updateCartDisplay(); document.getElementById('qr-container').classList.add('hidden'); }, 3000);
         }
       });
     }
 
-    function showPaymentStatus(type, message) {
+    function showPaymentStatus(type, msg) {
       const el = document.getElementById('payment-status');
-      el.className = `status status-${type}`;
-      el.textContent = message;
-      el.classList.remove('hidden');
+      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
     }
 
     function addStoreLog(orderId, amount) {
@@ -522,30 +301,18 @@
       log.insertBefore(entry, log.firstChild);
     }
 
-    // ============= CUSTOMER LOGIC =============
     function initCustomer() {
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-      
       const urlParams = new URLSearchParams(window.location.search);
       const payOrderId = urlParams.get('pay');
-      if (payOrderId) {
-        document.getElementById('scan-input').value = window.location.href;
-        processPaymentLink(payOrderId);
-      }
+      if (payOrderId) processPaymentLink(payOrderId);
     }
 
     window.connectToStore = async function() {
       const sid = document.getElementById('connect-store-id').value.trim().toUpperCase();
-      if (!sid.startsWith('STORE-')) {
-        alert('Maling Store ID! Dapat nagsisimula sa STORE-');
-        return;
-      }
-
+      if (!sid.startsWith('STORE-')) return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
       const snap = await get(ref(db, 'stores/' + sid));
-      if (!snap.exists()) {
-        alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
-        return;
-      }
+      if (!snap.exists()) return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
       connectedStoreId = sid;
       alert('✅ Nakakonekta na sa tindahan! I-scan na ang QR para magbayad.');
     };
@@ -554,13 +321,11 @@
       const input = document.getElementById('scan-input');
       input.style.display = input.style.display === 'none' ? 'block' : 'none';
       input.focus();
-      
       input.onpaste = (e) => {
         setTimeout(() => {
           const text = e.clipboardData.getData('text');
           if (text.includes('pay=')) {
-            const url = new URL(text);
-            const orderId = url.searchParams.get('pay');
+            const orderId = new URL(text).searchParams.get('pay');
             if (orderId) processPaymentLink(orderId);
           }
         }, 100);
@@ -569,19 +334,10 @@
 
     async function processPaymentLink(orderId) {
       const snap = await get(ref(db, 'payments/' + orderId));
-      if (!snap.exists()) {
-        showCustStatus('error', 'Hindi mahanap ang order!');
-        return;
-      }
-
+      if (!snap.exists()) return showCustStatus('error', 'Hindi mahanap ang order!');
       const pay = snap.val();
-      if (pay.status === 'paid') {
-        showCustStatus('error', 'Bayad na ang order na ito!');
-        return;
-      }
-
+      if (pay.status === 'paid') return showCustStatus('error', 'Bayad na ang order na ito!');
       pendingPayment = { ...pay, orderId };
-      
       document.getElementById('payment-details').classList.remove('hidden');
       document.getElementById('pay-store-name').textContent = pay.storeId;
       document.getElementById('pay-amount').textContent = `₱${pay.amount.toFixed(2)}`;
@@ -590,25 +346,15 @@
 
     window.confirmPayment = async function() {
       if (!pendingPayment) return;
-      
       const amount = pendingPayment.amount;
-      if (walletBalance < amount) {
-        showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
-        return;
-      }
-
+      if (walletBalance < amount) return showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
       walletBalance -= amount;
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
-
       await update(ref(db, 'payments/' + pendingPayment.orderId), {
-        status: 'paid',
-        paidAt: Date.now(),
-        customerBalanceAfter: walletBalance
+        status: 'paid', paidAt: Date.now(), customerBalanceAfter: walletBalance
       });
-
       showCustStatus('success', `✅ Bayad na! Nabawasan ng ₱${amount.toFixed(2)} sa iyong wallet.`);
       addCustLog(pendingPayment.orderId, amount);
-      
       pendingPayment = null;
       document.getElementById('payment-details').classList.add('hidden');
     };
@@ -619,15 +365,10 @@
       showCustStatus('', 'Kanselahin ang bayad.');
     };
 
-    function showCustStatus(type, message) {
+    function showCustStatus(type, msg) {
       const el = document.getElementById('cust-status');
-      el.className = `status status-${type}`;
-      el.textContent = message;
-      el.classList.remove('hidden');
-      
-      if (type === 'success') {
-        setTimeout(() => el.classList.add('hidden'), 5000);
-      }
+      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
+      if (type === 'success') setTimeout(() => el.classList.add('hidden'), 5000);
     }
 
     function addCustLog(orderId, amount) {
