@@ -15,7 +15,7 @@
       background: linear-gradient(135deg, #F1FAEE 0%, #A8DADC 100%);
       min-height: 100vh; padding: 15px;
     }
-    .container { max-width: 500px; margin: 0 auto; }
+    .container { max-width: 520px; margin: 0 auto; }
     .card {
       background: white; border-radius: 16px; padding: 25px;
       margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -71,6 +71,11 @@
       font-family: monospace; background: #f5f5f5; padding: 8px;
       border-radius: 6px; text-align: center; font-weight: 600; margin: 10px 0;
     }
+    .product-list-scroll { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+    .category-title {
+      font-size: 14px; font-weight: 700; color: var(--accent);
+      margin: 15px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -92,7 +97,7 @@
         <div class="title">🏪 Tindahan</div>
         <div class="store-id" id="my-store-id">ID: Naglo-load...</div>
         
-        <h3 style="margin:15px 0 10px;">➕ Magdagdag ng Produkto</h3>
+        <h3 style="margin:15px 0 10px;">➕ Magdagdag ng Bagong Produkto</h3>
         <div class="input-group">
           <label>Pangalan ng Produkto</label>
           <input type="text" id="prod-name" placeholder="Hal. Kape, Tinapay...">
@@ -104,7 +109,7 @@
         <button class="btn btn-primary" onclick="addProduct()">✅ Idagdag sa Tindahan</button>
 
         <h3 style="margin:25px 0 10px;">📋 Mga Produkto sa Tindahan</h3>
-        <div id="store-products"></div>
+        <div class="product-list-scroll" id="store-products"></div>
 
         <h3 style="margin:25px 0 10px;">🛒 Kasalukuyang Order</h3>
         <div id="cart-items"></div>
@@ -172,7 +177,7 @@
     import { getDatabase, ref, set, get, update, onChildChanged, off } 
       from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
-    // ✅ CONFIG MO — GINAMIT KO NA!
+    // ✅ CONFIG MO
     const firebaseConfig = {
       apiKey: "AIzaSyAxuB4gacmWIf3U4Ic5TsOxSHCaynR0vhw",
       authDomain: "bpos-pos.firebaseapp.com",
@@ -186,9 +191,49 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // 📦 DEFAULT PRODUCTS — 30 Items!
+    const DEFAULT_PRODUCTS = [
+      // 🍔 Pagkain
+      { name: 'Classic Burger', price: 85 },
+      { name: 'Cheese Burger', price: 95 },
+      { name: 'Double Burger', price: 120 },
+      { name: 'Chicken Burger', price: 110 },
+      { name: 'Hotdog Sandwich', price: 55 },
+      { name: 'Ham & Cheese Sandwich', price: 75 },
+      { name: 'Egg Sandwich', price: 45 },
+      { name: 'Pork Siomai (3pcs)', price: 40 },
+      { name: 'Chicken Siomai (3pcs)', price: 45 },
+      { name: 'Lumpiang Shanghai', price: 35 },
+      { name: 'Fried Chicken 1pc', price: 65 },
+      { name: 'Fried Chicken 2pcs', price: 110 },
+      { name: 'Pancit Canton', price: 50 },
+      { name: 'Spaghetti', price: 60 },
+      { name: 'Rice Bowl — Chicken', price: 75 },
+      { name: 'Rice Bowl — Pork', price: 80 },
+      
+      // 🍟 Meryenda
+      { name: 'French Fries — Small', price: 35 },
+      { name: 'French Fries — Medium', price: 55 },
+      { name: 'French Fries — Large', price: 70 },
+      { name: 'Hash Browns', price: 40 },
+      { name: 'Donut', price: 25 },
+      { name: 'Bread with Egg', price: 35 },
+      { name: 'Cake Slice', price: 65 },
+      
+      // 🥤 Inumin
+      { name: 'Hot Coffee', price: 30 },
+      { name: 'Iced Coffee', price: 45 },
+      { name: 'Soft Drink — Small', price: 25 },
+      { name: 'Soft Drink — Large', price: 40 },
+      { name: 'Mineral Water', price: 20 },
+      { name: 'Fruit Juice', price: 35 },
+      { name: 'Chocolate Drink', price: 40 }
+    ];
+
     let currentRole = null, myStoreId = null, connectedStoreId = null;
     let walletBalance = 1000.00, cart = [], pendingPayment = null;
     let paymentUnsubscribe = null;
+    let productsInitialized = false;
 
     window.selectRole = function(role) {
       currentRole = role;
@@ -208,22 +253,53 @@
     async function initStore() {
       myStoreId = 'STORE-' + Math.random().toString(36).substr(2, 6).toUpperCase();
       document.getElementById('my-store-id').textContent = `ID: ${myStoreId}`;
-      await set(ref(db, 'stores/' + myStoreId), { name: 'Tindahan', createdAt: Date.now() });
+      
+      await set(ref(db, 'stores/' + myStoreId), {
+        name: 'Tindahan',
+        createdAt: Date.now()
+      });
+
+      // Load default products kung wala pa
+      const snap = await get(ref(db, `stores/${myStoreId}/products`));
+      if (!snap.exists() || !snap.val() || Object.keys(snap.val()).length === 0) {
+        await loadDefaultProducts();
+      }
+
       listenForPayments();
       renderStoreProducts();
+    }
+
+    async function loadDefaultProducts() {
+      for (const prod of DEFAULT_PRODUCTS) {
+        const productId = 'prod-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+        await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
+          name: prod.name,
+          price: prod.price,
+          addedAt: Date.now()
+        });
+        await new Promise(r => setTimeout(r, 20)); // para magkaiba ang ID
+      }
+      productsInitialized = true;
     }
 
     window.addProduct = async function() {
       const name = document.getElementById('prod-name').value.trim();
       const price = parseFloat(document.getElementById('prod-price').value);
-      if (!name || !price || price <= 0) return alert('Punan nang tama ang pangalan at presyo!');
+      
+      if (!name || !price || price <= 0) {
+        return alert('Punan nang tama ang pangalan at presyo!');
+      }
+
       const productId = 'prod-' + Date.now();
-      await set(ref(db, `stores/${myStoreId}/products/${productId}`), { name, price });
-      cart.push({ id: productId, name, price });
-      updateCartDisplay();
+      await set(ref(db, `stores/${myStoreId}/products/${productId}`), {
+        name, price, addedAt: Date.now()
+      });
+
       document.getElementById('prod-name').value = '';
       document.getElementById('prod-price').value = '';
+      
       renderStoreProducts();
+      alert('✅ Naidagdag na sa tindahan!');
     };
 
     async function renderStoreProducts() {
@@ -231,49 +307,111 @@
       const products = snap.val() || {};
       const container = document.getElementById('store-products');
       container.innerHTML = '';
+
+      if (Object.keys(products).length === 0) {
+        container.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px;">Naglo-load ang mga produkto...</p>';
+        return;
+      }
+
+      // I-grupo ayon sa kategorya
+      const groups = {
+        '🍔 Pagkain': [],
+        '🍟 Meryenda': [],
+        '🥤 Inumin': []
+      };
+
       Object.entries(products).forEach(([id, p]) => {
-        const inCart = cart.some(c => c.id === id);
-        container.innerHTML += `
-          <div class="product-item">
-            <div><div style="font-weight:600;">${p.name}</div><div style="font-size:13px; color:#666;">₱${p.price.toFixed(2)}</div></div>
-            <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" style="width:auto; padding:8px 12px; font-size:13px;"
-                    onclick="${inCart ? `removeFromCart('${id}')` : `addToCart('${id}', '${p.name}', ${p.price})`}">
-              ${inCart ? '✓ Nasa Basket' : '+ Magdagdag'}
-            </button>
-          </div>`;
+        const lower = p.name.toLowerCase();
+        let group = 'Iba pa';
+        if (/burger|chicken|sandwich|siomai|lumpia|pancit|spaghetti|rice bowl|egg|pork/.test(lower)) group = '🍔 Pagkain';
+        else if (/fries|hash|donut|bread|cake/.test(lower)) group = '🍟 Meryenda';
+        else if (/coffee|drink|water|juice|chocolate|soft/.test(lower)) group = '🥤 Inumin';
+        
+        if (!groups[group]) groups[group] = [];
+        groups[group].push({ id, ...p });
       });
+
+      for (const [groupName, items] of Object.entries(groups)) {
+        if (items.length === 0) continue;
+        container.innerHTML += `<div class="category-title">${groupName}</div>`;
+        items.forEach(p => {
+          const inCart = cart.some(c => c.id === p.id);
+          container.innerHTML += `
+            <div class="product-item">
+              <div>
+                <div style="font-weight:600;">${p.name}</div>
+                <div style="font-size:13px; color:#666;">₱${p.price.toFixed(2)}</div>
+              </div>
+              <button class="btn ${inCart ? 'btn-danger' : 'btn-primary'}" 
+                      style="width:auto; padding:8px 12px; font-size:13px;"
+                      onclick="${inCart ? `removeFromCart('${p.id}')` : `addToCart('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.price})`}">
+                ${inCart ? '✓ Nasa Basket' : '+'}
+              </button>
+            </div>`;
+        });
+      }
     }
 
-    window.addToCart = function(id, name, price) { cart.push({ id, name, price }); updateCartDisplay(); renderStoreProducts(); };
-    window.removeFromCart = function(id) { cart = cart.filter(c => c.id !== id); updateCartDisplay(); renderStoreProducts(); };
+    window.addToCart = function(id, name, price) {
+      cart.push({ id, name, price });
+      updateCartDisplay();
+      renderStoreProducts();
+    };
+
+    window.removeFromCart = function(id) {
+      cart = cart.filter(c => c.id !== id);
+      updateCartDisplay();
+      renderStoreProducts();
+    };
 
     function updateCartDisplay() {
       const itemsEl = document.getElementById('cart-items');
       const totalEl = document.getElementById('cart-total');
+      
       if (cart.length === 0) {
-        itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">Wala pang laman ang order</p>';
-        totalEl.textContent = '₱0.00'; return;
+        itemsEl.innerHTML = '<p style="color:#aaa; text-align:center; padding:10px;">Magdagdag ng produkto sa order</p>';
+        totalEl.textContent = '₱0.00';
+        return;
       }
+
       const total = cart.reduce((sum, i) => sum + i.price, 0);
-      itemsEl.innerHTML = cart.map(i => `<div class="cart-item"><span>${i.name}</span><span>₱${i.price.toFixed(2)}</span></div>`).join('');
+      itemsEl.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <span>${item.name}</span>
+          <span>₱${item.price.toFixed(2)}</span>
+        </div>
+      `).join('');
       totalEl.textContent = `₱${total.toFixed(2)}`;
     }
 
     window.generatePaymentQR = async function() {
-      if (cart.length === 0) return alert('Magdagdag muna ng produkto sa order!');
+      if (cart.length === 0) {
+        return alert('Magdagdag muna ng produkto sa order!');
+      }
+
       const total = cart.reduce((sum, i) => sum + i.price, 0);
       const orderId = 'ORDER-' + Date.now();
+
       await set(ref(db, 'payments/' + orderId), {
-        storeId: myStoreId, orderId, amount: total, items: cart, status: 'pending', createdAt: Date.now()
+        storeId: myStoreId,
+        orderId,
+        amount: total,
+        items: cart,
+        status: 'pending',
+        createdAt: Date.now()
       });
+
       const qrData = window.location.origin + window.location.pathname + '?pay=' + orderId;
+      
       document.getElementById('qr-container').classList.remove('hidden');
       document.getElementById('order-id-display').textContent = orderId;
+      
       const qrContainer = document.getElementById('qr-code');
       qrContainer.innerHTML = '';
       QRCode.toCanvas(document.createElement('canvas'), qrData, { width: 200 }, (err, canvas) => {
         if (!err) qrContainer.appendChild(canvas);
       });
+
       showPaymentStatus('pending', 'Naghihintay ng bayad mula sa customer...');
     };
 
@@ -283,14 +421,21 @@
         if (pay.storeId === myStoreId && pay.status === 'paid') {
           showPaymentStatus('success', `✅ Nakatanggap ng bayad! ₱${pay.amount.toFixed(2)}`);
           addStoreLog(pay.orderId, pay.amount);
-          setTimeout(() => { cart = []; updateCartDisplay(); document.getElementById('qr-container').classList.add('hidden'); }, 3000);
+          
+          setTimeout(() => {
+            cart = [];
+            updateCartDisplay();
+            document.getElementById('qr-container').classList.add('hidden');
+          }, 3000);
         }
       });
     }
 
-    function showPaymentStatus(type, msg) {
+    function showPaymentStatus(type, message) {
       const el = document.getElementById('payment-status');
-      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
+      el.className = `status status-${type}`;
+      el.textContent = message;
+      el.classList.remove('hidden');
     }
 
     function addStoreLog(orderId, amount) {
@@ -301,18 +446,27 @@
       log.insertBefore(entry, log.firstChild);
     }
 
+    // ============= CUSTOMER =============
     function initCustomer() {
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
+      
       const urlParams = new URLSearchParams(window.location.search);
       const payOrderId = urlParams.get('pay');
-      if (payOrderId) processPaymentLink(payOrderId);
+      if (payOrderId) {
+        processPaymentLink(payOrderId);
+      }
     }
 
     window.connectToStore = async function() {
       const sid = document.getElementById('connect-store-id').value.trim().toUpperCase();
-      if (!sid.startsWith('STORE-')) return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
+      if (!sid.startsWith('STORE-')) {
+        return alert('Maling Store ID! Dapat nagsisimula sa STORE-');
+      }
+
       const snap = await get(ref(db, 'stores/' + sid));
-      if (!snap.exists()) return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
+      if (!snap.exists()) {
+        return alert('Hindi nakakonekta! Hindi mahanap ang tindahan.');
+      }
       connectedStoreId = sid;
       alert('✅ Nakakonekta na sa tindahan! I-scan na ang QR para magbayad.');
     };
@@ -321,11 +475,13 @@
       const input = document.getElementById('scan-input');
       input.style.display = input.style.display === 'none' ? 'block' : 'none';
       input.focus();
+      
       input.onpaste = (e) => {
         setTimeout(() => {
           const text = e.clipboardData.getData('text');
           if (text.includes('pay=')) {
-            const orderId = new URL(text).searchParams.get('pay');
+            const url = new URL(text);
+            const orderId = url.searchParams.get('pay');
             if (orderId) processPaymentLink(orderId);
           }
         }, 100);
@@ -334,10 +490,17 @@
 
     async function processPaymentLink(orderId) {
       const snap = await get(ref(db, 'payments/' + orderId));
-      if (!snap.exists()) return showCustStatus('error', 'Hindi mahanap ang order!');
+      if (!snap.exists()) {
+        return showCustStatus('error', 'Hindi mahanap ang order!');
+      }
+
       const pay = snap.val();
-      if (pay.status === 'paid') return showCustStatus('error', 'Bayad na ang order na ito!');
+      if (pay.status === 'paid') {
+        return showCustStatus('error', 'Bayad na ang order na ito!');
+      }
+
       pendingPayment = { ...pay, orderId };
+      
       document.getElementById('payment-details').classList.remove('hidden');
       document.getElementById('pay-store-name').textContent = pay.storeId;
       document.getElementById('pay-amount').textContent = `₱${pay.amount.toFixed(2)}`;
@@ -346,15 +509,24 @@
 
     window.confirmPayment = async function() {
       if (!pendingPayment) return;
+      
       const amount = pendingPayment.amount;
-      if (walletBalance < amount) return showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
+      if (walletBalance < amount) {
+        return showCustStatus('error', `Hindi sapat ang balanse! Mayroon ka lang ₱${walletBalance.toFixed(2)}`);
+      }
+
       walletBalance -= amount;
       document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2);
+
       await update(ref(db, 'payments/' + pendingPayment.orderId), {
-        status: 'paid', paidAt: Date.now(), customerBalanceAfter: walletBalance
+        status: 'paid',
+        paidAt: Date.now(),
+        customerBalanceAfter: walletBalance
       });
+
       showCustStatus('success', `✅ Bayad na! Nabawasan ng ₱${amount.toFixed(2)} sa iyong wallet.`);
       addCustLog(pendingPayment.orderId, amount);
+      
       pendingPayment = null;
       document.getElementById('payment-details').classList.add('hidden');
     };
@@ -365,10 +537,15 @@
       showCustStatus('', 'Kanselahin ang bayad.');
     };
 
-    function showCustStatus(type, msg) {
+    function showCustStatus(type, message) {
       const el = document.getElementById('cust-status');
-      el.className = `status status-${type}`; el.textContent = msg; el.classList.remove('hidden');
-      if (type === 'success') setTimeout(() => el.classList.add('hidden'), 5000);
+      el.className = `status status-${type}`;
+      el.textContent = message;
+      el.classList.remove('hidden');
+      
+      if (type === 'success') {
+        setTimeout(() => el.classList.add('hidden'), 5000);
+      }
     }
 
     function addCustLog(orderId, amount) {
